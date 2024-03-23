@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+    <title>nickslash</title>
+    <style>
+        :root {
+            --color-0: #ee6055;
+            --color-1: #60d394;
+            --color-2: #aaf683;
+            --color-3: #ffd97d;
+            --color-4: #ff9b85;
+        }
+        body {
+            position: absolute;
+            inset: 0 0 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: backgroundAnimation 8s ease 0s infinite alternate;
+        }
+        #logo {
+            height: 50vw;
+            width: 50vw;
+        }
+        #logo path {
+            stroke-dasharray: 100;
+            animation: strokeAnimation 8s ease 0s infinite alternate-reverse, pathAnimation 10s linear;
+        }
+        @keyframes pathAnimation {
+            100% { stroke-dashoffset: 0; }
+            75% { stroke-dashoffset: 25; }
+            50% { stroke-dashoffset: 50; }
+            25% { stroke-dashoffset: 75; }
+            0% { stroke-dashoffset: 100; }
+        }
+        @keyframes strokeAnimation {
+            0% { stroke: var(--color-0); }
+            25% { stroke: var(--color-1); }
+            50% { stroke: var(--color-2); }
+            75% { stroke: var(--color-3); }
+            100% { stroke: var(--color-4); }    
+        }
+        @keyframes backgroundAnimation {
+            0% { background-color: var(--color-0); }
+            25% { background-color: var(--color-1); }
+            50% { background-color: var(--color-2); }
+            75% { background-color: var(--color-3); }
+            100% { background-color: var(--color-4); }       
+        }
+    </style>
+    <title>sector-zero.uk</title>
+</head>
+<body>
+<svg id="logo" viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg">
+<path fill="none" stroke-width="0.25" stroke-opacity="1" d="M3,1c-1,0,-1,1,-1,1c0,1,1,1,1,1c1,0,1,1,1,1c0,1,-1,1,-1,1h-1c-1,0,-1,-1,-1,-1v-3c2,0,2,2,2,2c0,2,2,2,2,2v-3c0,-1,-1,-1,-1,-1z" />
+</svg>
+</body>
+</html>
