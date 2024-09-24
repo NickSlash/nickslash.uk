@@ -1,384 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Barcode Generator</title>
-    <script>
-        function aztec(text, sec, lay) { // make Aztec bar code
-            var e = 20000, BackTo, numBytes, CharSiz = [5,5,5,5,4];
-            var LatLen = [[ 0,5,5,10,5,10], [9,0,5,10,5,10], [5,5,0,5,10,10],
-                         [5,10,10,0,10,15], [4,9,9,14,0,14], [0,0,0,0,0,0]];
-            var ShftLen =  [[0,e,e,5,e], [5,0,e,5,e], [e,e,0,5,e], [e,e,e,0,e], [4,e,e,4,0]];
-            var Latch = [[[],  [28],    [29],   [29,30],[30],   [31]], // from upper to ULMPDB
-                        [[30,14],[],    [29],   [29,30],[30],   [31]], //      lower
-                        [[29],  [28],   [],     [30],   [28,30],[31]], //      mixed
-                        [[31],  [31,28],[31,29],[],	    [31,30],[31,31]], //   punct
-                        [[14],  [14,28],[14,29],[14,29,30],[],  [14,31]]]; //  digit
-            var CharMap = [	"  ABCDEFGHIJKLMNOPQRSTUVWXYZ", // upper
-                            "  abcdefghijklmnopqrstuvwxyz", // lower
-                            String.fromCharCode(0,32,1,2,3,4,5,6,7,8,9,10,11,12,13,
-                                7,28,29,30,31,64,92,94,95,96,124,126,127), // mixed
-                            " \r\r\r\r\r!\"#$%&'()*+,-./:;<=>?[]{}", // punct
-                            "  0123456789,."]; // digit
-            var enc, el = text.length, b, typ = 0, x,y, ctr, c, i, j, l;
-        
-            function stream(seq, val, bits) { // add data to bit stream 
-                var eb = seq[0]%b+bits; // first element is length in bits
-                val <<= b; seq[0] += bits; // b - word size in bits
-                seq[seq.length-1] |= val>>eb; // add data
-                while (eb >= b) { // word full?
-                    bits = seq[seq.length-1]>>1;
-                    if (typ == 0 && (bits == 0 || 2*bits+2 == 1<<b)) { // bit stuffing: all 0 or 1
-                        seq[seq.length-1] = 2*bits+(1&bits^1); // insert complementary bit
-                        seq[0]++; eb++;
-                    }
-                    eb -= b;
-                    seq.push((val>>eb)&((1<<b)-1));
-                }
-            }
-            function binary(seq, pos) { // encode numBytes of binary
-                seq[0] -= numBytes*8+(numBytes > 31 ? 16 : 5); // stream() adjusts len too -> remove
-                stream(seq, numBytes > 31 ? 0 : numBytes, 5); // len
-                if (numBytes > 31) stream(seq, numBytes-31, 11); // long len
-                for (var i = pos-numBytes; i < pos; i++)
-                    stream(seq, text.charCodeAt(i), 8); // bytes
-            }
-            /** encode text */
-            sec = 100/(100-Math.min(Math.max(sec||25,0),90)); // limit percentage of check words to 0-90%
-            for (j = c = 4; ; c = b) { // compute word size b: 6/8/10/12 bits
-                j = Math.max(j,(Math.floor(el*sec)+3)*c); // total needed bits, at least 3 check words
-                b = j <= 240 ? 6 : j <= 1920 ? 8 : j <= 10208 ? 10 : 12; // bit capacity -> word size
-                if (lay) b = Math.max(b, lay < 3 ? 6 : lay < 9 ? 8 : lay < 23 ? 10 : 12); // parameter
-                if (c >= b) break; // fits in word size
-        
-                var Cur = [[0,0],[e],[e],[e],[e],[e]]; // current sequence for [U,L,M,P,D,B]
-                for (i = 0; i < text.length; i++) { // calculate shortest message sequence
-                    for (var to = 0; to < 6; to++) // check for shorter latch to
-                        for (var frm = 0; frm < 6; frm++) // if latch from
-                            if (Cur[frm][0]+LatLen[frm][to] < Cur[to][0] && (frm < 5 || to == BackTo)) {
-                                Cur[to] = Cur[frm].slice(); // replace by shorter sequence
-                                if (frm < 5) // latch from shorter mode
-                                    Latch[frm][to].forEach(function (lat) {stream(Cur[to], lat, lat < 16 ? 4 : 5);});
-                                else 
-                                    binary(Cur[to], i); // return from binary -> encode
-                                if (to == 5) { BackTo = frm; numBytes = 0; Cur[5][0] += 5; } // begin binary shift
-                            }
-                    var Nxt = [[e],[e],[e],[e],[e],Cur[5]]; // encode char
-                    var twoChar = ["\r\n",". ",", ",": "].indexOf(text.substr(i,2)); // special 2 char sequences
-                    for (to = 0; to < 5; to++) { // to sequence
-                        var idx = twoChar < 0 ? CharMap[to].indexOf(text.substr(i,1),1) : twoChar+2; // index to map
-                        if (idx < 0 || (twoChar >= 0 && to != 3)) continue; // char in set ?
-                        for (frm = 0; frm < 5; frm++) // encode char
-                            if (Cur[frm][0]+ShftLen[frm][to]+CharSiz[to] < Nxt[frm][0]) {
-                                Nxt[frm] = Cur[frm].slice();
-                                if (frm != to) // add shift
-                                    stream(Nxt[frm], to == 3 ? 0 : frm < 4 ? 28 : 15, CharSiz[frm]);
-                                stream(Nxt[frm], idx, CharSiz[to]); // add char
-                            }
-                    }
-                    Nxt[5][0] += numBytes++ == 31 ? 19 : 8; // binary exeeds 31 bytes
-                    if (twoChar >= 0) { i++; Nxt[5][0] += numBytes++ == 31 ? 19 : 8; } // 2 char seq: jump over 2nd
-                    Cur = Nxt; // take next sequence
-                }
-                binary(Cur[5], text.length); // encode remaining bytes
-                enc = Cur.reduce(function(a,b) { return a[0] < b[0] ? a : b; }); // get shortest sequence
-                i = b-enc[0]%b; if (i < b) stream(enc,(1<<i)-1,i); // padding
-                enc.pop(); // remove 0-byte
-                el = enc.shift()/b|0; // get encoding length
-            }
-            if (el > 1660) return []; // message too long
-            typ = j > 608 || el > 64 || (lay && lay > 4) ? 14 : 11; // full or compact Aztec finder size
-            var mod = parseInt(text); // Aztec rune possible?
-            if (mod < 0 || mod > 255 || mod+"" != text || lay != 0) // Aztec rune 0-255 ?
-                lay = Math.max(lay||1,Math.min(32,(Math.ceil((Math.sqrt(j+typ*typ)-typ)/4)))); // needed layers
-            var ec = Math.floor((8*lay*(typ+2*lay))/b)-el; // # of error words
-            typ >>= 1; ctr = typ+2*lay; ctr += (ctr-1)/15|0; // center position
-        
-            /** compute Reed Solomon error detection and correction */
-            function rs(ec,s,p) { // # of checkwords, polynomial bit size, generator polynomial
-                var rc = new Array(ec+2), i, j, el = enc.length; // reed/solomon code
-                var lg = new Array(s+1), ex = new Array(s); // log/exp table for multiplication
-                for (j = 1, i = 0; i < s; i++) { // compute log/exp table of Galois field
-                    ex[i] = j; lg[j] = i;
-                    j += j; if (j > s)  j ^= p; // GF polynomial
-                }
-                for (rc[ec+1] = i = 0; i <= ec; i++) // compute RS generator polynomial
-                    for (j = ec-i, rc[j] = 1; j++ < ec; )
-                        rc[j] = rc[j+1]^ex[(lg[rc[j]]+i)%s];
-                for (i = 0; i < el; i++) // compute RS checkwords
-                    for (j = 0, p = enc[el]^enc[i]; j++ < ec; )
-                        enc[el+j-1] = enc[el+j]^(p ? ex[(lg[rc[j]]+lg[p])%s] : 0);
-            }
-            /** layout Aztec barcode */
-            var mat = Array(2*ctr+1).fill(null).map(function() {return [];});
-            for (y = 1-typ; y < typ; y++) // layout central finder
-                for (x = 1-typ; x < typ; x++)
-                    mat[ctr+y][ctr+x] = Math.max(Math.abs(x),Math.abs(y))&1^1;
-            mat[ctr-typ+1][ctr-typ] = mat[ctr-typ][ctr-typ] = 1; // orientation marks
-            mat[ctr-typ][ctr-typ+1] = mat[ctr+typ-1][ctr+typ] = 1;
-            mat[ctr-typ+1][ctr+typ] = mat[ctr-typ][ctr+typ] = 1; 
-            function move(dx,dy) { // move one cell
-                do x += dx; while (typ == 7 && (x&15) == 0); // skip reference grid
-                do y += dy; while (typ == 7 && (y&15) == 0);
-            }
-            if (lay > 0) { // layout the message
-                rs(ec,(1<<b)-1,[67,301,1033,4201][b/2-3]); // error correction, generator polynomial
-                x = -typ; y = x-1; // start of layer 1 at top left
-                j = l = (3*typ+9)/2; // length of inner side
-                var dx = 1, dy = 0; // direction right
-                while ((c = enc.pop()) !== undefined) // data in reversed order inside to outside
-                    for (i = b/2; i-- > 0; c >>= 2) {
-                        if (c&1) mat[ctr+y][ctr+x] = 1; // odd bit
-                        move(dy,-dx); // move across
-                        if (c&2) mat[ctr+y][ctr+x] = 1; // even bit
-                        move(dx-dy,dx+dy); // move ahead
-                        if (j-- == 0) { // spiral turn
-                            move(dy,-dx); // move across
-                            j = dx; dx = -dy; dy = j; // rotate clockwise
-                            if (dx < 1) // move to next side
-                                for (j = 2; j--;) move(dx-dy,dx+dy);
-                            else l += 4; // full turn -> next layer
-                            j = l; // start new side
-                        }
-                    }
-                if (typ == 7) // layout reference grid
-                    for (x = (15-ctr)&-16; x <= ctr; x += 16)
-                        for (y = (1-ctr)&-2; y <= ctr; y += 2) 
-                            mat[ctr+y][ctr+x] = mat[ctr+x][ctr+y] = 1;
-                mod = (lay-1)*(typ*992-4896)+el-1; // 2/5 + 6/11 mode bits
-            }
-            /** process modes message compact/full */
-            b = (typ*3-1)/2; // 7/10 bits per side
-            for (i = typ-2; i-- > 0; mod >>= 4) enc[i] = mod&15; // mode to 4 bit words
-            rs((typ+5)/2,15,19); // add 5/6 words error correction
-            enc.push(0); j = lay ? 0 : 10; // XOR Aztec rune data
-            for (i = 1; i <= b; i++) stream(enc,j^enc[i],4); // 8/16 words to 4 sides
-            for (i = 2-typ, j = 1; i < typ-1; i++, j += j) { // layout mode data
-                if (typ == 7 && i == 0) i++; // skip reference grid
-                if (enc[b+1]&j) mat[ctr-typ][ctr-i] = 1; // top
-                if (enc[b+2]&j) mat[ctr-i][ctr+typ] = 1; // right
-                if (enc[b+3]&j) mat[ctr+typ][ctr+i] = 1; // bottom
-                if (enc[b+4]&j) mat[ctr+i][ctr-typ] = 1; // left
-            }
-            return mat; // matrix Aztec barcode
-        }
-    </script>
-    <script>
-        const load = (resources) => {
-            return new Promise((resolve, reject) => {
-                let images = []
-                let loaded = 0
-                resources.forEach((resource, index) => {
-                    const img = new Image()
-                    img.src = resource
-                    img.onload = () => {
-                        images[index] = img
-                        if (++loaded === resources.length) { resolve(images) }
-                    }
-                    img.onerror = () => { reject(`resource #${index} failed to load`) }
-                })
-            })
-        }
-
-        const createMatrix = (size, value) => new Array(size).fill(null).map(()=>new Array(size).fill(value))
-
-        const createLabeledMatrix = (matrix, matrixMax, label) => {
-            const padding = 5
-            const size = matrixMax + 2 * padding
-            const data = createMatrix(size, { type: "color", data: 0 })
-            let matrixOffset = (matrixMax - matrix.length) / 2 + padding
-            matrix.forEach((row, y) => {
-                matrix.forEach((column, x) => {
-                    if (matrix[y][x] == 1) { data[x+matrixOffset][y+matrixOffset] = { type: "color", data: 1 }}
-                })
-            })
-            let  labelOffset = Math.floor(size / 2) - Math.floor(label.length / 2) - 1
-            for (let character = 0; character < label.length; character++) {
-                data[size - 3][labelOffset + character * 2] = { type: "sprite", data: label[character] }
-            }
-            return data
-        }
-
-        const renderMatrix = (matrix, colors, sprites) => {
-            const cellSize = 16
-            const canvas = document.createElement("canvas")
-            canvas.width = canvas.height = matrix.length * cellSize
-            const ctx = canvas.getContext("2d")
-            ctx.imageSmoothingEnabled = false
-            const overlay = []
-            ctx.fillStyle = colors[0]
-            ctx.fillRect(0,0,canvas.width, canvas.height)
-
-            matrix.forEach((row, y) => {
-                matrix.forEach((column, x) => {
-                    let cell = matrix[y][x]
-                    if (cell.type) {
-                        if (cell.type == "color" && cell.data != 0) {
-                            ctx.fillStyle = colors[cell.data]
-                            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
-                        }
-                        if (cell.type == "sprite") {
-                            overlay.push([sprites[cell.data], 0, 0, 16, 16, x * cellSize - (cellSize / 2) - 1, y * cellSize - (cellSize / 2) - 1, cellSize * 2, cellSize * 2])
-                        }
-                    }
-                })
-            })
-            overlay.forEach(item=>ctx.drawImage(...item))
-            return canvas
-        }
-
-        const sprites = [
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHUlEQVQI12Ngf8DA/4FBxoJBQgIFyf8AIhQRMAAAtU4GGQ53M7EAAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHklEQVQI12OQf8Ag/4FBwoJBQgKMLIBcTBGQMjAAANurCDtiGQI7AAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAIUlEQVQI12Ngf8DA/4FBxoJBQoJBggEDSQClgApAysAAAJAuBWXbubsEAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHElEQVQI12OQf8Ag/4FBwoJBQgIHsgAqACkDAwCm0gY9QOgkOAAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAGUlEQVQI12OQ/wFCEgwIJP8AiJBFoGrAAAC92wcbMqjhUgAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAGElEQVQI12OQ/wFCEgwIJP8AiGBcBIIAAKzeBR3PnWQ/AAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAJ0lEQVQI12Ngf8DA/4FBxoJBQoJBggGEJH8AEZALQUApoAKQMjAAAMeVB4e9fpDxAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAE0lEQVQI12OQkEBH8j9ACFMcDAB28QRvMArwLQAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAFElEQVQI12OQ/wFCjA14EFQNGAAA+cUJZ03uMysAAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAGklEQVQI12NgkMCOJGBIxoKB/wMD+wMGMAAAOoUDi8PNPzcAAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAKklEQVQI12OQkGCQsGCQKGCQeMAgeYBBuoFBngGIgAwgFygIlrIAKQMDAL8FBydZpAKPAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAEklEQVQI12OQYCCM5H+AEBgAADVFA0/oaCigAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAH0lEQVQI12OQkGCQsWCQq2CQ/8EgfYNBcgZQBDsCAwCoCQVWNJqFNQAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAJ0lEQVQI12OQkIAiGQkGOQkGeQkG6RkMkjcYJH4wSFQwSFggFIABAIbrBVZuJpTgAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHElEQVQI12Ngf8DA/4FBRoJBAgeSsQAqACkDAwCaFgXVjwqRvgAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAH0lEQVQI12OQf8Ag/4FBwoJBQgKMLIBckKAEAxqCAAC/JgWt2MKegAAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAH0lEQVQI12Ngf8DA/4FBxoJBQgIrAkoBFYCUMVQAEQChbgblskBzmAAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHUlEQVQI12OQf8Ag/4FBwoJBQgKMLIBcuAgKAgMAy54GbbcQRb8AAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAALElEQVQI1w3KIQEAMAgAwXOTWARB6J+ECEQY9v+8EatapqSI8ZYmXbx14Bj4wG8HP0NddL0AAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAEklEQVQI12OQ/wFCjA2EERgAAO+TCDtx3Nl9AAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAF0lEQVQI12OQkCCAZCwY+D8wsD9gAAMAVeUES+Rb64EAAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHUlEQVQI12OQkMCJZCwY+AoY2B8wMB9gYGxgAAMAX5kEroeAKfYAAAAASUVORK5CYII=",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHklEQVQI12OQkMCOJGcwSN9gkP/BIFfBIGMBEgEDAHW6BVbXX8phAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAIklEQVQI12OQkIAiGQsGvgIG9gcMzAeACMgAcoGCCAVgAACipAYZBpduNAAAAABJRU5ErkJggg==",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAHklEQVQI12OQkIAiGQsGvgIG9gcMzAcYGBuwIDAAAJ+ABpRTNDIRAAAAAElFTkSuQmCC",
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX///8AAABVwtN+AAAAK0lEQVQI12OQ/wFCDBIMDBYMDAUMDA8YGA8wMDcwsDMw8DEwyIBkoGrAAADQ2geKV4OZRgAAAABJRU5ErkJggg=="
-        ]
-
-        const app = {
-            sprites: [],
-            colors: [
-                "#ffffff", // white 
-                "#000000"  // black
-            ],
-            keys: [
-                ["sso", [18, 18, 14], ""],
-                ["user", [20, 18,  4, 17], "\r\n"],
-                ["key", [10,  4, 24], "\r\n"]
-            ]
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const button = document.querySelector("#generate")
-
-            load(sprites).then(result=>{
-                app.sprites=result
-                button.removeAttribute("disabled")
-            })
-
-            const updateHash = () => {
-                let kvPairs = {}
-                app.keys.forEach( (value) => {
-                    const [key, label, extra] = value
-                    let element = document.querySelector(`#${key}`)
-                    if (element.value.length > 0) {
-                        kvPairs[key] = element.value
-                    }
-                })
-                window.location.hash = Object.keys(kvPairs).map(key => `${key}=${encodeURIComponent(kvPairs[key])}`).join("&")
-            }
-
-            const readHash = () => {
-                const kvPairs = new URLSearchParams(window.location.hash.substring(1))
-                app.keys.forEach( (value, index) => { 
-                    const [key, label, extra] = value
-                    if (kvPairs.has(key)) { 
-                        document.querySelector(`#${key}`).value = kvPairs.get(key)
-                    } 
-                })     
-            }
-
-            const generateLinks = () => {
-                const output = document.querySelector("#output")
-                output.querySelectorAll("li").forEach(item => {
-                    const url = item.querySelector("img").src
-                    output.removeChild(item)
-                    URL.revokeObjectURL(url.src)
-                })
-                const barcodes = []
-                let max = 0
-                app.keys.forEach( (value, index) => {
-                    const [key, label, extra] = value
-                    let element = document.querySelector(`#${key}`)
-                    if (element.value.length > 0) {
-                        let barcode = aztec(`${element.value}${extra}`, 50)
-                        barcodes.push([barcode, index])
-                        max = barcode.length > max ? barcode.length : max
-                    }
-                })
-                barcodes.forEach(item => {
-                    let [matrix, index] = item
-                    const image = renderMatrix(createLabeledMatrix(matrix, max, app.keys[index][1]), app.colors, app.sprites)
-                    image.toBlob(blob=>{
-                        const li = document.createElement("li")
-                        const url = URL.createObjectURL(blob, "image/png")
-                        const img = document.createElement("img")
-                        img.src = url
-                        const link = document.createElement("a")
-                        link.href = url
-                        link.appendChild(img)
-                        link.setAttribute("download", `barcode-${app.keys[index][0]}.png`)
-                        li.appendChild(link)
-                        output.appendChild(li)
-                    })
-                })
-            }
-
-            document.querySelector("#generate").addEventListener("click", () => { updateHash(); generateLinks() })
-            document.querySelector("#toggle").addEventListener("click", togglePassword)
-
-            readHash()
-    })
-    </script>
-    <script>
-        function togglePassword() {
-            const element = document.querySelector("#key")
-            element.type = element.type == "text" ? "password" : "text"
-        }
-    </script>
-    <style>
-        div.data {
-            display: grid;
-            grid-template-columns: max-content max-content max-content;
-            grid-gap: 5px;
-        }
-        div.data label { 
-            grid-column-start: 1;
-            text-align: right;
-        }
-        div.data input[type=text] {
-            grid-column-start: 2;
-        }
-        div.data button {
-            grid-column-start: 2;
-        }
-        div.data button.tool {
-            grid-column-start: 3;
-        }
-        ul {
-            list-style: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Login Barcode Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+<script>
+const aztec=(r,t,o)=>{const f=2e4,e=[5,5,5,5,4],a=[[0,5,5,10,5,10],[9,0,5,10,5,10],[5,5,0,5,10,10],[5,10,10,0,10,15],[4,9,9,14,0,14],[0,0,0,0,0,0]],n=[[0,f,f,5,f],[5,0,f,5,f],[f,f,0,5,f],[f,f,f,0,f],[4,f,f,4,0]],h=[[[],[28],[29],[29,30],[30],[31]],[[30,14],[],[29],[29,30],[30],[31]],[[29],[28],[],[30],[28,30],[31]],[[31],[31,28],[31,29],[],[31,30],[31,31]],[[14],[14,28],[14,29],[14,29,30],[],[14,31]]],l=[" ABCDEFGHIJKLMNOPQRSTUVWXYZ"," abcdefghijklmnopqrstuvwxyz",String.fromCharCode(0,32,1,2,3,4,5,6,7,8,9,10,11,12,13,7,28,29,30,31,64,92,94,95,96,124,126,127)," \r\r\r\r\r!\"#$%&'()*+,-./:;<=>?[]{}"," 0123456789,."];let s,m,i,c,M,d,g,p,u,x,w,A=r.length,b=0;const y=(r,t,o)=>{let f=r[0]%c+o;for(t<<=c,r[0]+=o,r[r.length-1]|=t>>f;f>=c;)o=r[r.length-1]>>1,0!==b||0!==o&&2*o+2!=1<<c||(r[r.length-1]=2*o+(1&o^1),r[0]++,f++),f-=c,r.push(t>>f&(1<<c)-1)},C=(t,o)=>{t[0]-=8*m+(m>31?16:5),y(t,m>31?0:m,5),m>31&&y(t,m-31,11);for(let f=o-m;f<o;f++)y(t,r.charCodeAt(f),8)};for(t=100/(100-Math.min(Math.max(t||25,0),90)),x=p=4;x=Math.max(x,(Math.floor(A*t)+3)*p),c=x<=240?6:x<=1920?8:x<=10208?10:12,o&&(c=Math.max(c,o<3?6:o<9?8:o<23?10:12)),!(p>=c);p=c){let t=[[0,0],[f],[f],[f],[f],[f]];for(u=0;u<r.length;u++){for(let r=0;r<6;r++)for(let o=0;o<6;o++)t[o][0]+a[o][r]<t[r][0]&&(o<5||r===s)&&(t[r]=t[o].slice(),o<5?h[o][r].forEach((o=>{y(t[r],o,o<16?4:5)})):C(t[r],u),5===r&&(s=o,m=0,t[5][0]+=5));const o=[[f],[f],[f],[f],[f],t[5]],i=["\r\n",". ",", ",": "].indexOf(r.substr(u,2));for(to=0;to<5;to++){const f=i<0?l[to].indexOf(r.substr(u,1),1):i+2;if(!(f<0||i>=0&&3!==to))for(frm=0;frm<5;frm++)t[frm][0]+n[frm][to]+e[to]<o[frm][0]&&(o[frm]=t[frm].slice(),frm!==to&&y(o[frm],3===to?0:frm<4?28:15,e[frm]),y(o[frm],f,e[to]))}o[5][0]+=31==m++?19:8,i>=0&&(u++,o[5][0]+=31==m++?19:8),t=o}C(t[5],r.length),i=t.reduce(((r,t)=>r[0]<t[0]?r:t)),u=c-i[0]%c,u<c&&y(i,(1<<u)-1,u),i.pop(),A=i.shift()/c|0}if(A>1660)return[];b=x>608||A>64||o&&o>4?14:11;let O=parseInt(r);(O<0||O>255||O+""!==r||0!==o)&&(o=Math.max(o||1,Math.min(32,Math.ceil((Math.sqrt(x+b*b)-b)/4))));const q=Math.floor(8*o*(b+2*o)/c)-A;b>>=1,g=b+2*o,g+=(g-1)/15|0;const v=(r,t,o)=>{const f=new Array(r+2);let e,a;const n=i.length,h=new Array(t+1),l=new Array(t);for(a=1,e=0;e<t;e++)l[e]=a,h[a]=e,a+=a,a>t&&(a^=o);for(f[r+1]=e=0;e<=r;e++)for(a=r-e,f[a]=1;a++<r;)f[a]=f[a+1]^l[(h[f[a]]+e)%t];for(e=0;e<n;e++)for(a=0,o=i[n]^i[e];a++<r;)i[n+a-1]=i[n+a]^(o?l[(h[f[a]]+h[o])%t]:0)},z=Array(2*g+1).fill(null).map((()=>[]));for(d=1-b;d<b;d++)for(M=1-b;M<b;M++)z[g+d][g+M]=1&Math.max(Math.abs(M),Math.abs(d))^1;z[g-b+1][g-b]=z[g-b][g-b]=1,z[g-b][g-b+1]=z[g+b-1][g+b]=1,z[g-b+1][g+b]=z[g-b][g+b]=1;const E=(r,t)=>{do{M+=r}while(7===b&&0==(15&M));do{d+=t}while(7===b&&0==(15&d))};if(o>0){v(q,(1<<c)-1,[67,301,1033,4201][c/2-3]),M=-b,d=M-1,x=w=(3*b+9)/2;let r=1,t=0;for(;void 0!==(p=i.pop());)for(u=c/2;u-- >0;p>>=2)if(1&p&&(z[g+d][g+M]=1),E(t,-r),2&p&&(z[g+d][g+M]=1),E(r-t,r+t),0==x--){if(E(t,-r),x=r,r=-t,t=x,r<1)for(x=2;x--;)E(r-t,r+t);else w+=4;x=w}if(7===b)for(M=15-g&-16;M<=g;M+=16)for(d=1-g&-2;d<=g;d+=2)z[g+d][g+M]=z[g+M][g+d]=1;O=(o-1)*(992*b-4896)+A-1}for(c=(3*b-1)/2,u=b-2;u-- >0;O>>=4)i[u]=15&O;for(v((b+5)/2,15,19),i.push(0),x=o?0:10,u=1;u<=c;u++)y(i,x^i[u],4);for(u=2-b,x=1;u<b-1;u++,x+=x)7===b&&0===u&&u++,i[c+1]&x&&(z[g-b][g-u]=1),i[c+2]&x&&(z[g-u][g+b]=1),i[c+3]&x&&(z[g+b][g+u]=1),i[c+4]&x&&(z[g+u][g-b]=1);return z};
+const module=16,scale=2,border=8,renderSprite=([e,t,n,r])=>{const a=new Uint32Array(e*t);let o=0;r.forEach((e=>{const[t,r]=Array.isArray(e)?e:[0,e];for(let e=0;e<r;e++)a[o++]=n[t]}));const l=document.createElement("canvas");l.height=t,l.width=e;const c=l.getContext("2d");return c.putImageData(new ImageData(new Uint8ClampedArray(a.buffer),t,e),0,0),c.imageSmoothingEnabled=!1,l},renderLabel=(e,t)=>{const n=document.createElement("canvas");n.height=32,n.width=16*(2*e.length-1)*2;const r=n.getContext("2d");return r.imageSmoothingEnabled=!1,e.forEach(((e,n)=>{r.drawImage(t[e],0,0,16,16,2*n*16*2,0,32,32)})),n},renderMatrix=e=>{const t=document.createElement("canvas");t.height=t.width=16*e.length;const n=t.getContext("2d");return n.fillColor="black",e.forEach(((t,r)=>{e.forEach(((t,a)=>{1==e[r][a]&&n.fillRect(16*a,16*r,16,16)}))})),t},composeImage=(e,t,n)=>{const r=document.createElement("canvas");r.height=r.width=16*(n+8);const a=r.getContext("2d");return a.fillStyle="#ffffff",a.fillRect(0,0,r.width,r.height),a.drawImage(e,r.width/2-e.width/2,r.height/2-e.height/2),a.drawImage(t,r.width/2-t.width/2,r.height-48),r};let items={sso:{label:[4,4,2]},user:{label:[5,4,0,3],append:"\r\n"},key:{label:[1,0,6],append:"\r\n"}};document.addEventListener("DOMContentLoaded",(()=>{document.querySelector("#data");const e=document.querySelector("#content"),t=document.querySelector("#button"),n=new URLSearchParams(window.location.hash.substring(1)),r=()=>{Object.keys(items).forEach((e=>{let t=document.querySelector(`#${e}`);t&&(t.value.length>0?n.set(e,t.value):n.delete(e))})),window.location.hash=n.toString()};Object.keys(items).forEach((e=>{let t=document.querySelector(`#${e}`);t&&(n.has(e)&&(t.value=n.get(e)),t.addEventListener("input",r))})),t.addEventListener("click",(()=>{const t=[];let n=0;for(;e.firstElementChild;){let t=e.firstElementChild.querySelector("img");if(t){let n=t.src;e.removeChild(e.firstElementChild),URL.revokeObjectURL(n)}}Object.keys(items).forEach((e=>{let r=document.querySelector(`#${e}`);if(r&&r.value.length>0){let a=aztec(`${r.value}${items[e]?.append}`,50);t.push([e,renderMatrix(a),renderLabel(items[e].label,sprites)]),n=Math.max(a.length,n)}})),t.forEach((t=>{let[r,a,o]=t;composeImage(a,o,n).toBlob((t=>{const n=URL.createObjectURL(t,"image/png"),a=document.createElement("a"),o=document.createElement("img");a.href=n,a.download=`barcode-${r}.png`,o.src=n,a.appendChild(o),e.appendChild(a)}))}))}))}));
+const sprites=[[16,16,[4294967295,4278190080],[3,[1,10],6,[1,10],6,[1,2],14,[1,2],14,[1,2],14,[1,2],14,[1,8],8,[1,8],8,[1,2],14,[1,2],14,[1,2],14,[1,2],14,[1,10],6,[1,10],35]],[16,16,[4294967295,4278190080],[3,[1,2],6,[1,2],6,[1,2],5,[1,3],6,[1,2],4,[1,3],7,[1,2],3,[1,3],8,[1,2],2,[1,3],9,[1,2],1,[1,3],10,[1,5],11,[1,5],11,[1,2],1,[1,3],10,[1,2],2,[1,3],9,[1,2],3,[1,3],8,[1,2],4,[1,3],7,[1,2],5,[1,3],6,[1,2],6,[1,2],35]],[16,16,[4294967295,4278190080],[5,[1,6],9,[1,8],7,[1,3],5,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,3],4,[1,3],7,[1,8],9,[1,6],37]],[16,16,[4294967295,4278190080],[3,[1,8],8,[1,9],7,[1,2],5,[1,3],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],5,[1,3],6,[1,9],7,[1,9],7,[1,2],5,[1,3],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],35]],[16,16,[4294967295,4278190080],[5,[1,6],9,[1,8],7,[1,3],4,[1,3],6,[1,2],6,[1,2],6,[1,2],14,[1,3],14,[1,7],10,[1,7],14,[1,3],14,[1,2],6,[1,2],6,[1,2],6,[1,3],4,[1,3],7,[1,8],9,[1,6],37]],[16,16,[4294967295,4278190080],[3,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,3],4,[1,3],7,[1,8],9,[1,6],37]],[16,16,[4294967295,4278190080],[3,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,2],6,[1,3],4,[1,3],7,[1,3],2,[1,3],9,[1,6],11,[1,4],13,[1,2],14,[1,2],14,[1,2],14,[1,2],14,[1,2],14,[1,2],14,[1,2],39]]].map((e=>renderSprite(e)));
+</script>
+<style>
+input{box-sizing: border-box; font-family: inherit; font-size: inherit;}
+input[type="text"], input[type="password"]{height: 2rem; line-height: 1.25rem;}
+button{font-family: inherit; font-size: inherit; padding: 0.5rem 0;}
+body{font-family: Roboto, sans-serif; font-size: 1rem;}
+#container{max-width: 400px; margin: 0 auto; display: grid; gap: 20px;}
+#data{padding: 0 10px; display: grid; grid-template-columns: 1fr;}
+#data label, #data input, #data button, #data sub{margin-bottom: 5px; width: 100%;}
+#content{display: grid; justify-items: center; grid-gap: 10px;}
+#content img{max-width: 100%; height: auto;}
+#content a{display: block; width: fit-content;}
+</style>
 </head>
-    <body>
-        <div class="data">
-            <label for="sso">Simple Sign-On</label><input type="text" id="sso">
-            <label for="user">Account</label><input type="text" id="user">
-            <label for="key">Password</label><input type="password" id="key"><button id="toggle" class="tool">Toggle</button>
-            <button id="generate" disabled="yes">Generate</button>
-        </div>
-        <ul id="output"></ul>
-    </body>
+<body>
+<div id="container">
+    <div id="data">
+        <label for="sso">Simple Sign-On</label>
+        <sub>scan your card with a barcode app or google lens</sub>
+        <input type="text" id="sso">
+        <label for="user">Account</label>
+        <sub>user@company.com</sub>
+        <input type="text" id="user">
+        <label for="key">Password</label>
+        <input type="password" id="key">
+        <br>
+        <button id="button">Generate</button>
+    </div>
+</div>
+<div id="content"></div>
+</body>
 </html>
