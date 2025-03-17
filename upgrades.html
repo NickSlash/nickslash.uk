@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Runner Upgrade Checker</title>
+</head>
+
+<body>
+    <pre>C:\Program Files (x86)\Steam\userdata\<i>{profile}</i>\1465360\remote\CompleteSave.cfg</pre>
+    <button id="openFile">Open Save File</button>
+    <input type="file" id="fileInput" style="display: none;" accept=".cfg">
+    <pre id="output"></pre>
+
+    <script>
+        const data = {
+            "level_us_01_01": {
+                "region": "michigan",
+                "location": "black-river",
+                "upgrades": {
+                    "US_01_01_UPGRADE_TRUCK_OLD_ENGINE": "http://www.maprunner.info/michigan/black-river/?lat=277.5700&lng=2.5230&layer=upgrade",
+                    "US_01_01_UPGRADE_SCOUT_OLD_ENGINE": "http://www.maprunner.info/michigan/black-river/?lat=165.2870&lng=-867.1530&layer=upgrade",
+                    "US_01_01_UPGRADE_G_SCOUT_OFFROAD": "http://www.maprunner.info/michigan/black-river/?lat=-165.4100&lng=173.5660&layer=upgrade",
+                    "US_01_01_UPGRADE_FLEESTAR_ALLWHEELS": "http://www.maprunner.info/michigan/black-river/?lat=-623.2840&lng=357.1010&layer=upgrade",
+                    "US_01_01_UPGRADE_CK_SUSPENSION": "http://www.maprunner.info/michigan/black-river/?lat=-205.7840&lng=-799.5620&layer=upgrade",
+                    "US_01_01_UPGRADE_GMC_SUSP_HIGHT": "http://www.maprunner.info/michigan/black-river/?lat=-712.3730&lng=151.7140&layer=upgrade",
+                    "US_01_01_UPGRADE_FLEESTAR_SUSP_HIGHT": "http://www.maprunner.info/michigan/black-river/?lat=3.8260&lng=-134.7320&layer=upgrade"
+                }
+            },
+            "level_us_01_02": {
+                "region": "michigan",
+                "location": "smithville-dam",
+                "upgrades": {
+                    "US_01_02_UPGRADE_TRUCK_ENG": "http://www.maprunner.info/michigan/smithville-dam/?lat=914.2360&lng=235.0230&layer=upgrade",
+                    "US_01_02_UPGRADE_CHEVY_DIFF_LOCK": "http://www.maprunner.info/michigan/smithville-dam/?lat=102.2540&lng=851.3730&layer=upgrade",
+                    "US_01_02_UPGRADE_GMC_DIFF_LOCK": "http://www.maprunner.info/michigan/smithville-dam/?lat=-68.9430&lng=495.9820&layer=upgrade",
+                    "US_01_02_UPGRADE_WHITE_ALLWHEELS": "http://www.maprunner.info/michigan/smithville-dam/?lat=-114.9880&lng=133.6790&layer=upgrade",
+                    "US_01_02_UPGRADE_TRUCK_ENG_4070": "http://www.maprunner.info/michigan/smithville-dam/?lat=585.0510&lng=-367.7070&layer=upgrade",
+                    "US_01_02_UPGRADE_G_SCOUT_HIGHWAY": "http://www.maprunner.info/michigan/smithville-dam/?lat=-335.2620&lng=-441.3500&layer=upgrade",
+                    "US_01_02_UPGRADE_INTERN_SCOUT_SUSP_HIGH": "http://www.maprunner.info/michigan/smithville-dam/?lat=-593.3290&lng=60.9820&layer=upgrade",
+                    "US_01_02_UPGRADE_WHITE_SUSP_HIGH": "http://www.maprunner.info/michigan/smithville-dam/?lat=-217.9350&lng=-702.4560&layer=upgrade"
+                }
+            },
+            "level_us_01_03": {
+                "region": "michigan",
+                "location": "island-lake",
+                "upgrades": {
+                    "US_01_03_UPG_3": "http://www.maprunner.info/michigan/island-lake/?lat=121.7500&lng=-135.8200&layer=upgrade",
+                    "US_01_03_UPG_4": "http://www.maprunner.info/michigan/island-lake/?lat=-433.9430&lng=273.5750&layer=upgrade",
+                    "US_01_03_UPG_6": "http://www.maprunner.info/michigan/island-lake/?lat=458.4320&lng=-562.4450&layer=upgrade",
+                    "US_01_03_UPG_2": "http://www.maprunner.info/michigan/island-lake/?lat=268.5730&lng=953.5080&layer=upgrade"
+                }
+            },
+            "level_us_01_04_new": {
+                "region": "michigan",
+                "location": "drummind-island",
+                "upgrades": {
+                    "US_01_04_UPG_1": "http://www.maprunner.info/michigan/drummond-island/?lat=-274.2680&lng=-438.6690&layer=upgrade",
+                    "US_01_04_UPG_3": "http://www.maprunner.info/michigan/drummond-island/?lat=265.1600&lng=63.9370&layer=upgrade"
+                }
+            },
+            "level_us_02_01": {
+                "region": "alaska",
+                "location": "north-port",
+                "upgrades": {
+                    "US_02_01_UPG_01": "http://www.maprunner.info/alaska/north-port/?lat=-524.3970&lng=-730.5440&layer=upgrade",
+                    "US_02_01_UPG_02": "http://www.maprunner.info/alaska/north-port/?lat=-783.6950&lng=209.5140&layer=upgrade",
+                    "US_02_01_UPG_04": "http://www.maprunner.info/alaska/north-port/?lat=246.3810&lng=607.6190&layer=upgrade",
+                    "US_02_01_UPG_05": "http://www.maprunner.info/alaska/north-port/?lat=462.9530&lng=-19.0960&layer=upgrade",
+                    "US_02_01_UPG_06": "http://www.maprunner.info/alaska/north-port/?lat=733.6370&lng=-555.3380&layer=upgrade",
+                    "US_02_01_UPG_07": "http://www.maprunner.info/alaska/north-port/?lat=-447.9190&lng=736.4210&layer=upgrade",
+                    "US_02_01_UPG_08": "http://www.maprunner.info/alaska/north-port/?lat=-220.5200&lng=-227.3980&layer=upgrade",
+                    "US_02_01_UPG_09": "http://www.maprunner.info/alaska/north-port/?lat=111.7360&lng=209.4990&layer=upgrade"
+                }
+            },
+            "level_us_02_02_new": {
+                "region": "alaska",
+                "location": "mountain-river",
+                "upgrades": {
+                    "US_02_02_UPG_01": "http://www.maprunner.info/alaska/mountain-river/?lat=-278.5720&lng=231.5650&layer=upgrade",
+                    "US_02_02_UPG_02": "http://www.maprunner.info/alaska/mountain-river/?lat=309.7020&lng=-141.1860&layer=upgrade",
+                    "US_02_02_UPG_04": "http://www.maprunner.info/alaska/mountain-river/?lat=237.7990&lng=189.6560&layer=upgrade",
+                    "US_02_02_UPG_05": "http://www.maprunner.info/alaska/mountain-river/?lat=-51.9690&lng=18.1240&layer=upgrade",
+                    "US_02_02_UPG_06": "http://www.maprunner.info/alaska/mountain-river/?lat=69.4730&lng=-150.5440&layer=upgrade"
+                }
+            },
+            "level_us_02_03_new": {
+                "region": "alaska",
+                "location": "white-valley",
+                "upgrades": {
+                    "US_02_03_UPG_01": "http://www.maprunner.info/alaska/white-valley/?lat=785.5120&lng=537.1950&layer=upgrade",
+                    "US_02_03_UPG_02": "http://www.maprunner.info/alaska/white-valley/?lat=-374.2730&lng=110.4450&layer=upgrade",
+                    "US_02_03_UPG_04": "http://www.maprunner.info/alaska/white-valley/?lat=-898.3670&lng=404.3060&layer=upgrade",
+                    "US_02_03_UPG_05": "http://www.maprunner.info/alaska/white-valley/?lat=435.8380&lng=-217.6870&layer=upgrade",
+                    "US_02_03_UPG_06": "http://www.maprunner.info/alaska/white-valley/?lat=-88.0310&lng=579.4480&layer=upgrade",
+                    "US_02_03_UPG_07": "http://www.maprunner.info/alaska/white-valley/?lat=-940.4840&lng=126.1320&layer=upgrade"
+                }
+            },
+            "level_us_02_04_new": {
+                "region": "alaska",
+                "location": "pedro-bay",
+                "upgrades": {
+                    "US_02_04_UPG_1": "http://www.maprunner.info/alaska/pedro-bay/?lat=-110.6380&lng=246.7490&layer=upgrade",
+                    "US_02_04_UPG_2": "http://www.maprunner.info/alaska/pedro-bay/?lat=301.3520&lng=96.5750&layer=upgrade",
+                    "US_02_04_UPG_3": "http://www.maprunner.info/alaska/pedro-bay/?lat=-463.3700&lng=279.3150&layer=upgrade",
+                    "US_02_04_UPG_5": "http://www.maprunner.info/alaska/pedro-bay/?lat=-401.2040&lng=-164.4310&layer=upgrade"
+                }
+            },
+            "level_ru_02_01_crop": {
+                "region": "taymyr",
+                "location": "quarry",
+                "upgrades": {
+                    "RU_02_01_UPGRADE_01": "http://www.maprunner.info/taymyr/quarry/?lat=822.3160&lng=328.5360&layer=upgrade",
+                    "RU_02_01_UPGRADE_02": "http://www.maprunner.info/taymyr/quarry/?lat=52.9320&lng=25.3670&layer=upgrade",
+                    "RU_02_01_UPGRADE_03": "http://www.maprunner.info/taymyr/quarry/?lat=947.8830&lng=-131.4480&layer=upgrade",
+                    "RU_02_01_UPGRADE_04": "http://www.maprunner.info/taymyr/quarry/?lat=259.1670&lng=-416.9650&layer=upgrade",
+                    "RU_02_01_UPGRADE_06": "http://www.maprunner.info/taymyr/quarry/?lat=-395.6910&lng=-91.0440&layer=upgrade",
+                    "RU_02_01_UPGRADE_07": "http://www.maprunner.info/taymyr/quarry/?lat=603.2540&lng=-183.9280&layer=upgrade",
+                    "RU_02_01_UPGRADE_08": "http://www.maprunner.info/taymyr/quarry/?lat=-525.4420&lng=47.3870&layer=upgrade"
+                }
+            },
+            "level_ru_02_02": {
+                "region": "taymyr",
+                "location": "drowned-lands",
+                "upgrades": {
+                    "RU_02_02_UPGRADE_01": "http://www.maprunner.info/taymyr/drowned-lands/?lat=757.9810&lng=737.5200&layer=upgrade",
+                    "RU_02_02_UPGRADE_02": "http://www.maprunner.info/taymyr/drowned-lands/?lat=-747.2080&lng=-326.4520&layer=upgrade",
+                    "RU_02_02_UPGRADE_03": "http://www.maprunner.info/taymyr/drowned-lands/?lat=447.6690&lng=367.9960&layer=upgrade",
+                    "RU_02_02_UPGRADE_04": "http://www.maprunner.info/taymyr/drowned-lands/?lat=449.9970&lng=-56.7820&layer=upgrade",
+                    "RU_02_02_UPGRADE_05": "http://www.maprunner.info/taymyr/drowned-lands/?lat=486.8050&lng=848.4400&layer=upgrade",
+                    "RU_02_02_UPGRADE_06": "http://www.maprunner.info/taymyr/drowned-lands/?lat=-55.4030&lng=-354.6630&layer=upgrade",
+                    "RU_02_02_UPGRADE_08": "http://www.maprunner.info/taymyr/drowned-lands/?lat=-555.3760&lng=-436.9830&layer=upgrade",
+                    "RU_02_02_UPGRADE_09": "http://www.maprunner.info/taymyr/drowned-lands/?lat=-229.3060&lng=-185.2630&layer=upgrade"
+                }
+            },
+            "level_ru_02_03": {
+                "region": "taymyr",
+                "location": "zimnegorsk",
+                "upgrades": {
+                    "RU_02_03_UPGRADE1": "http://www.maprunner.info/taymyr/zimnegorsk/?lat=379.9690&lng=-370.2800&layer=upgrade",
+                    "RU_02_03_UPGRADE4": "http://www.maprunner.info/taymyr/zimnegorsk/?lat=60.1760&lng=309.5700&layer=upgrade",
+                    "RU_02_03_UPGRADE5": "http://www.maprunner.info/taymyr/zimnegorsk/?lat=30.9110&lng=88.2270&layer=upgrade",
+                    "RU_02_03_UPGRADE6": "http://www.maprunner.info/taymyr/zimnegorsk/?lat=-176.7640&lng=-113.7220&layer=upgrade",
+                    "RU_02_03_UPGRADE7": "http://www.maprunner.info/taymyr/zimnegorsk/?lat=171.9990&lng=446.0640&layer=upgrade",
+                    "RU_02_03_UPGRADE8": "http://www.maprunner.info/taymyr/zimnegorsk/?lat=-81.9160&lng=-379.4030&layer=upgrade"
+                }
+            },
+            "level_ru_02_04": {
+                "region": "taymyr",
+                "location": "rift",
+                "upgrades": {
+                    "RU_02_04_UPGRADE_01": "http://www.maprunner.info/taymyr/rift/?lat=-222.7020&lng=95.4100&layer=upgrade",
+                    "RU_02_04_UPGRADE_02": "http://www.maprunner.info/taymyr/rift/?lat=-120.9700&lng=351.9170&layer=upgrade",
+                    "RU_02_04_UPGRADE_03": "http://www.maprunner.info/taymyr/rift/?lat=333.8390&lng=256.7000&layer=upgrade"
+                }
+            }
+        }
+
+        const fileInput = document.getElementById('fileInput')
+        const openFileButton = document.getElementById('openFile')
+        const output = document.getElementById('output')
+
+        openFileButton.addEventListener('click', () => fileInput.click())
+
+        fileInput.addEventListener('change', event => {
+            const file = event.target.files[0]
+            if (!file) return
+
+            const reader = new FileReader()
+            reader.onload = e => {
+                output.innerHTML = ""
+                try {
+                    const saveData = JSON.parse(e.target.result.trim().replace(/\u0000+$/, ''))
+                    for (const [map, upgrades] of Object.entries(saveData.CompleteSave.SslValue.upgradesGiverData)) {
+                        if (map in data) {
+                            output.innerHTML += `<b>${data[map].region} / ${data[map].location}</b> (${map})\n`
+                            for (const [upgrade, value] of Object.entries(upgrades)) {
+                                output.innerHTML += `\t${upgrade} <a href="${data[map].upgrades[upgrade]}">view on map</a>\n`
+                                if (value == 0) {
+                                    output.innerHTML += `\t<span style="color: red;">upgrade not discovered.</span>\n`
+                                }
+                                if (value == 1) {
+                                    output.innerHTML += `\t<span style="color: orange;">discovered, not collected.</span>\n`
+                                }
+                                if (value == 2) {
+                                    output.innerHTML += `\t<span style="color: green;">collected.</span>\n`
+                                }
+                            }
+                        }
+                    }
+                } catch {
+                    output.innerHTML += "<b>Error Loading File</b>"
+                }
+            }
+
+            reader.readAsText(file)
+        })
+    </script>
+</body>
+
+</html>
