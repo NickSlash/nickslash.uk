@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Runner Upgrade and Watchtower Progression Checker</title>
+    <script>
+        const mapData = {
+            "level_ru_08_02": {
+                "watchpoints": {
+                    "WATCHPOINT_03": { "z": -36.885, "x": 444.305 },
+                    "WATCHPOINT_02": { "z": 470.724, "x": -141.485 },
+                    "WATCHPOINT_01": { "z": -516.108, "x": -128.211 }
+                },
+                "upgrades": {
+                    "RU_08_02_UPGRADE_GIVER": { "z": -859.167, "x": 797.085 }
+                },
+                "region": "Belozersk Glades",
+                "location": "The Institute",
+                "dlc": "Season 8: Grand Harvest"
+            },
+            "level_us_03_02": {
+                "watchpoints": {
+                    "US_03_02_W4": { "z": -617.69, "x": 536.921 },
+                    "US_03_02_W1": { "z": 692.052, "x": -245.766 },
+                    "US_03_02_W3": { "z": -660.404, "x": -572.454 },
+                    "US_03_02_W5": { "z": 562.105, "x": 739.212 },
+                    "US_03_02_W2": { "z": 17.825, "x": -568.969 }
+                },
+                "upgrades": {
+                    "US_03_02_G_SCOUT_FINETUNE": { "z": -811.395, "x": -382.198 },
+                    "US_03_02_PAYSTAR_5600_TS": { "z": -619.642, "x": -631.214 },
+                    "US_03_02_G_SPECIAL_FINETUNE": { "z": 648.924, "x": 672.548 },
+                    "US_03_02_BOAR_45318_SUS_HI": { "z": 518.997, "x": 268.637 }
+                },
+                "region": "Wisconsin",
+                "location": "Grain woods River",
+                "dlc": "Season 3: Locate & Deliver"
+            },
+            "level_us_09_02": {
+                "watchpoints": {
+                    "US_09_02_WATCHPOINT_03": { "z": 306.045, "x": -355.173 },
+                    "US_09_02_WATCHPOINT_01": { "z": -602.767, "x": -462.525 },
+                    "US_09_02_WATCHPOINT_02": { "z": 114.159, "x": 560.57 }
+                },
+                "upgrades": {
+                    "US_09_02_UPG_01": { "z": 524.055, "x": 182.53 },
+                    "US_09_02_UPG_02": { "z": 594.078, "x": -530.73 }
+                },
+                "region": "Ontario",
+                "location": "Burned Forest",
+                "dlc": "Season 9: Renew & Rebuild"
+            },
+            "level_ru_05_01": {
+                "upgrades": {
+                    "RU_05_02_UPGRADE_03": { "z": 269.347, "x": 25.347 }
+                },
+                "watchpoints": {
+                    "RU_05_01_TOWER": { "z": -275.04, "x": 188.507 },
+                    "WATCHPOINT": { "z": -231.114, "x": -311.237 }
+                },
+                "region": "Don",
+                "location": "Factory Grounds",
+                "dlc": "Season 5: Build & Dispatch"
+            },
+            "level_us_02_04_new": {
+                "watchpoints": {
+                    "US_02_04_W4": { "z": -478.647, "x": 252.349 },
+                    "US_02_04_W2": { "z": 8.239, "x": -152.184 },
+                    "US_02_04_W3": { "z": -396.952, "x": -231.037 },
+                    "US_02_04_W1": { "z": 95.135, "x": 474.602 }
+                },
+                "upgrades": {
+                    "US_02_04_UPG_2": { "z": 301.352, "x": 96.575 },
+                    "US_02_04_UPG_5": { "z": -401.204, "x": -164.431 },
+                    "US_02_04_UPG_1": { "z": -110.638, "x": 246.749 },
+                    "US_02_04_UPG_3": { "z": -463.37, "x": 279.315 }
+                },
+                "region": "Alaska",
+                "location": "Pedro Bay"
+            },
+            "level_us_01_02": {
+                "watchpoints": {
+                    "US_01_02_W3": { "z": 495.695, "x": -102.932 },
+                    "US_01_02_W7": { "z": -719.102, "x": -534.335 },
+                    "US_01_02_W2": { "z": -485.619, "x": 588.193 },
+                    "US_01_02_W1": { "z": 146.543, "x": 510.089 },
+                    "US_01_02_W4": { "z": 576.952, "x": 441.026 },
+                    "US_01_02_W5": { "z": 418.46, "x": -708.384 }
+                },
+                "upgrades": {
+                    "US_01_02_UPGRADE_INTERN_SCOUT_SUSP_HIGH": { "z": -593.329, "x": 60.982 },
+                    "US_01_02_UPGRADE_WHITE_ALLWHEELS": { "z": -114.988, "x": 133.679 },
+                    "US_01_02_UPGRADE_WHITE_SUSP_HIGH": { "z": -217.935, "x": -702.456 },
+                    "US_01_02_UPGRADE_GMC_DIFF_LOCK": { "z": -68.943, "x": 495.982 },
+                    "US_01_02_UPGRADE_TRUCK_ENG": { "z": 914.236, "x": 235.023 },
+                    "US_01_02_UPGRADE_CHEVY_DIFF_LOCK": { "z": 102.254, "x": 851.373 },
+                    "US_01_02_UPGRADE_TRUCK_ENG_4070": { "z": 585.051, "x": -367.707 },
+                    "US_01_02_UPGRADE_G_SCOUT_HIGHWAY": { "z": -335.262, "x": -441.35 }
+                },
+                "region": "Michigan",
+                "location": "Smithville Dam"
+            },
+            "level_us_02_02_new": {
+                "watchpoints": {
+                    "US_02_02_WP_03": { "z": 409.145, "x": 10.01 },
+                    "US_02_02_WP_02": { "z": -152.156, "x": 383.38 },
+                    "US_02_02_WP_01": { "z": -189.366, "x": -39.384 }
+                },
+                "upgrades": {
+                    "US_02_02_UPG_04": { "z": 237.799, "x": 189.656 },
+                    "US_02_02_UPG_01": { "z": -278.572, "x": 231.565 },
+                    "US_02_02_UPG_05": { "z": -51.969, "x": 18.124 },
+                    "US_02_02_UPG_02": { "z": 309.702, "x": -141.186 },
+                    "US_02_02_UPG_06": { "z": 69.473, "x": -150.544 }
+                },
+                "region": "Alaska",
+                "location": "Mountain River"
+            },
+            "level_us_11_01": {
+                "watchpoints": {
+                    "US_11_01_WATCHPOINT_02": { "z": 530.133, "x": 117.885 },
+                    "US_11_01_WATCHPOINT_04": { "z": -328.035, "x": -1.68 },
+                    "US_11_01_WATCHPOINT_01": { "z": -103.28, "x": 829.448 },
+                    "US_11_01_WATCHPOINT_03": { "z": 145.612, "x": -709.404 }
+                },
+                "upgrades": {
+                    "US_11_01_UPG_01": { "z": 48.003, "x": -389.378 }
+                },
+                "region": "Scandinavia",
+                "location": "Mountain Ridge",
+                "dlc": "Season 11: Lights & Cameras"
+            },
+            "level_us_14_01": {
+                "watchpoints": {
+                    "US_14_01_WATCHPOINT_01": { "z": 548.134, "x": 562.58 },
+                    "US_14_01_WATCHPOINT_04": { "z": -597.863, "x": 511.392 },
+                    "US_14_01_WATCHPOINT_02": { "z": -379.88, "x": -429.129 },
+                    "US_14_01_WATCHPOINT_03": { "z": 339.389, "x": -215.542 }
+                },
+                "upgrades": {
+                    "US_14_01_UPG_02": { "z": -510.368, "x": -512.017 },
+                    "US_14_01_UPG_04": { "z": 423.992, "x": -146.281 },
+                    "US_14_01_UPG_03": { "z": -306.303, "x": 725.56 },
+                    "US_14_01_UPG_01": { "z": 720.799, "x": 375.063 }
+                },
+                "region": "Austria",
+                "location": "Unterfeld",
+                "dlc": "Season 14: Reap & Sow"
+            },
+            "level_us_01_03": {
+                "watchpoints": {
+                    "US_01_03_W7": { "z": -72.812, "x": -527.106 },
+                    "US_01_03_W4": { "z": -371.793, "x": 63.545 },
+                    "US_01_03_W6": { "z": 368.467, "x": -497.481 },
+                    "US_01_03_W1": { "z": 181.051, "x": 902.716 },
+                    "US_01_03_W3": { "z": 270.95, "x": 444.486 },
+                    "US_01_03_W8": { "z": -439.93, "x": 812.169 },
+                    "US_01_03_W5": { "z": 129.342, "x": -13.498 },
+                    "US_01_03_W2": { "z": -71.315, "x": 509.683 }
+                },
+                "upgrades": {
+                    "US_01_03_UPG_6": { "z": 458.432, "x": -562.445 },
+                    "US_01_03_UPG_3": { "z": 121.75, "x": -135.82 },
+                    "US_01_03_UPG_2": { "z": 268.573, "x": 953.508 },
+                    "US_01_03_UPG_4": { "z": -433.943, "x": 273.575 }
+                },
+                "region": "Michigan",
+                "location": "Island Lake"
+            },
+            "level_us_11_02": {
+                "watchpoints": {
+                    "US_11_02_WATCHTOWER_01_RECOVERY": { "z": 740.625, "x": -157.805 },
+                    "US_11_02_WATCHPOINT_01": { "z": 736.579, "x": -156.218 },
+                    "US_11_02_WATCHTOWER_02_RECOVERY": { "z": -362.964, "x": -299.609 },
+                    "US_11_02_WATCHPOINT_02": { "z": -361.774, "x": -300.209 },
+                    "US_11_02_WATCHTOWER_03": { "z": -45.283, "x": 663.521 }
+                },
+                "upgrades": {
+                    "US_11_02_ADDON": { "z": -596.225, "x": 153.344 }
+                },
+                "region": "Scandinavia",
+                "location": "By The Lake",
+                "dlc": "Season 11: Lights & Cameras"
+            },
+            "level_us_06_02": {
+                "upgrades": {
+                    "US_06_02_UPG_04": { "z": -826.803, "x": 720.178 },
+                    "US_06_02_UPG_03": { "z": -200.969, "x": -100.204 },
+                    "US_06_02_UPG_01": { "z": 834.563, "x": -703.305 },
+                    "US_06_02_UPG_02": { "z": 410.108, "x": -113.156 }
+                },
+                "watchpoints": {
+                    "US_06_02_BIG_WATCHTOWER": { "z": -153.065, "x": 39.51 },
+                    "US_06_02_W3": { "z": 475.927, "x": -845.202 },
+                    "US_06_02_W2": { "z": 266.164, "x": 905.102 }
+                },
+                "region": "Maine",
+                "location": "Yellow rock National Forest",
+                "dlc": "Season 6: Haul & Hustle"
+            },
+            "level_ru_02_02": {
+                "watchpoints": {
+                    "RU_02_02_W1": { "z": -569.461, "x": -670.818 },
+                    "RU_02_02_W3": { "z": 882.887, "x": -506.152 },
+                    "RU_02_02_W2": { "z": -339.051, "x": 422.896 }
+                },
+                "upgrades": {
+                    "RU_02_02_UPGRADE_09": { "z": -229.306, "x": -185.263 },
+                    "RU_02_02_UPGRADE_02": { "z": -747.208, "x": -326.452 },
+                    "RU_02_02_UPGRADE_01": { "z": 757.981, "x": 737.52 },
+                    "RU_02_02_UPGRADE_04": { "z": 449.997, "x": -56.782 },
+                    "RU_02_02_UPGRADE_03": { "z": 447.669, "x": 367.996 },
+                    "RU_02_02_UPGRADE_06": { "z": -55.403, "x": -354.663 },
+                    "RU_02_02_UPGRADE_05": { "z": 486.805, "x": 848.44 },
+                    "RU_02_02_UPGRADE_08": { "z": -555.376, "x": -436.983 }
+                },
+                "region": "Taymyr",
+                "location": "Drowned Lands"
+            },
+            "level_ru_13_01": {
+                "watchpoints": {
+                    "RU_13_01_WATCHPOINT_03": { "z": 651.425, "x": 773.576 },
+                    "RU_13_01_WATCHPOINT_01": { "z": -40.441, "x": -580.1 },
+                    "RU_13_01_WATCHPOINT_02": { "z": 691.838, "x": -313.416 },
+                    "RU_13_01_WATCHPOINT_04": { "z": -85.252, "x": 422.4 }
+                },
+                "upgrades": {
+                    "RU_13_01_UPGRADE_04": { "z": 258.491, "x": 515.932 },
+                    "RU_13_01_UPGRADE_07": { "z": 742.722, "x": -524.167 },
+                    "RU_13_01_UPGRADE_02": { "z": 404.785, "x": -471.261 },
+                    "RU_13_01_UPGRADE_05": { "z": -212.031, "x": 252.103 },
+                    "RU_13_01_UPGRADE_03": { "z": -581.205, "x": 449.571 },
+                    "RU_13_01_UPGRADE_06": { "z": -277.812, "x": 110.483 },
+                    "RU_13_01_UPGRADE_01": { "z": -149.898, "x": -736.944 }
+                },
+                "region": "Almaty Region",
+                "location": "Zherbai Quarries",
+                "dlc": "Season 13: Dig & Drill"
+            },
+            "level_us_01_04_new": {
+                "watchpoints": {
+                    "US_01_04_W4": { "z": -455.864, "x": 256.667 },
+                    "US_01_04_W2": { "z": 118.447, "x": -294.254 },
+                    "US_01_04_W1": { "z": -287.804, "x": -402.888 },
+                    "US_01_04_W3": { "z": 43.428, "x": 178.604 }
+                },
+                "upgrades": {
+                    "US_01_04_UPG_3": { "z": 265.16, "x": 63.937 },
+                    "US_01_04_UPG_1": { "z": -274.268, "x": -438.669 }
+                },
+                "region": "Michigan",
+                "location": "Drummond Island"
+            },
+            "level_ru_08_03": {
+                "watchpoints": {
+                    "WATCHPOINT_02": { "z": 543.542, "x": 266.81 },
+                    "WATCHPOINT_01": { "z": 78.711, "x": -130.283 }
+                },
+                "upgrades": {
+                    "RU_08_03_UPGRADE_GIVER_01": { "z": 339.054, "x": 862.835 },
+                    "RU_08_03_UPGRADE_GIVER_02": { "z": -789.833, "x": -94.576 }
+                },
+                "region": "Belozersk Glades",
+                "location": "Heartlands",
+                "dlc": "Season 8: Grand Harvest"
+            },
+            "level_us_02_03_new": {
+                "watchpoints": {
+                    "US_02_03_WP_04": { "z": -466.398, "x": -284.437 },
+                    "US_02_03_WP_02": { "z": 411.782, "x": 579.231 },
+                    "US_02_03_WP_05": { "z": -918.102, "x": 307.022 },
+                    "US_02_03_WP_03": { "z": 102.794, "x": -155.582 },
+                    "US_02_03_WP_01": { "z": 668.639, "x": -11.523 }
+                },
+                "upgrades": {
+                    "US_02_03_UPG_05": { "z": 435.838, "x": -217.687 },
+                    "US_02_03_UPG_02": { "z": -374.273, "x": 110.445 },
+                    "US_02_03_UPG_07": { "z": -940.484, "x": 126.132 },
+                    "US_02_03_UPG_04": { "z": -898.367, "x": 404.306 },
+                    "US_02_03_UPG_01": { "z": 785.512, "x": 537.195 },
+                    "US_02_03_UPG_06": { "z": -88.031, "x": 579.448 }
+                },
+                "region": "Alaska",
+                "location": "White Valley"
+            },
+            "level_us_12_03": {
+                "watchpoints": {
+                    "US_12_03_WATCHPOINT_03": { "z": -369.449, "x": 421.927 },
+                    "US_12_03_WATCHPOINT_02": { "z": -498.825, "x": -654.451 },
+                    "US_12_03_WATCHPOINT_01": { "z": 584.8, "x": -462.278 }
+                },
+                "upgrades": {
+                    "US_12_03_UPGRADE_01": { "z": -210.785, "x": 89.896 },
+                    "US_12_03_UPGRADE_02": { "z": -332.772, "x": 931.537 }
+                },
+                "region": "North Carolina",
+                "location": "Flatland",
+                "dlc": "Season 12: Public Energy"
+            },
+            "level_us_02_01": {
+                "watchpoints": {
+                    "US_02_01_WP_04": { "z": -248.419, "x": 200.004 },
+                    "US_02_01_WP_03": { "z": -474.134, "x": -563.12 },
+                    "US_02_01_WP_01": { "z": 210.574, "x": 116.092 },
+                    "US_02_01_WP_02": { "z": 304.645, "x": -359.502 }
+                },
+                "upgrades": {
+                    "US_02_01_UPG_06": { "z": 733.637, "x": -555.338 },
+                    "US_02_01_UPG_04": { "z": 246.381, "x": 607.619 },
+                    "US_02_01_UPG_09": { "z": 111.736, "x": 209.499 },
+                    "US_02_01_UPG_01": { "z": -524.397, "x": -730.544 },
+                    "US_02_01_UPG_02": { "z": -783.695, "x": 209.514 },
+                    "US_02_01_UPG_07": { "z": -447.919, "x": 736.421 },
+                    "US_02_01_UPG_08": { "z": -220.52, "x": -227.398 },
+                    "US_02_01_UPG_05": { "z": 462.953, "x": -19.096 }
+                },
+                "region": "Alaska",
+                "location": "North Port"
+            },
+            "level_ru_02_03": {
+                "watchpoints": {
+                    "RU_02_03_WATCHPOINT_2": { "z": 291.203, "x": 352.665 },
+                    "RU_02_03_WATCHPOINT_1": { "z": 144.091, "x": -331.043 },
+                    "RU_02_03_WATCHPOINT_3": { "z": -350.133, "x": 223.198 }
+                },
+                "upgrades": {
+                    "RU_02_03_UPGRADE5": { "z": 30.911, "x": 88.227 },
+                    "RU_02_03_UPGRADE8": { "z": -81.916, "x": -379.403 },
+                    "RU_02_03_UPGRADE1": { "z": 379.969, "x": -370.28 },
+                    "RU_02_03_UPGRADE6": { "z": -176.764, "x": -113.722 },
+                    "RU_02_03_UPGRADE4": { "z": 60.176, "x": 309.57 },
+                    "RU_02_03_UPGRADE7": { "z": 171.999, "x": 446.064 }
+                },
+                "region": "Taymyr",
+                "location": "Zimnegorsk"
+            },
+            "level_ru_08_04": {
+                "watchpoints": {
+                    "WATCHPOINT_03": { "z": 465.579, "x": 449.748 },
+                    "WATCHPOINT_02": { "z": -89.763, "x": -289.77 },
+                    "WATCHPOINT_01": { "z": -513.897, "x": 378.53 }
+                },
+                "upgrades": {
+                    "RU_08_04_UPGRADE_02": { "z": -121.022, "x": 42.789 }
+                },
+                "region": "Belozersk Glades",
+                "location": "Harvestcorp",
+                "dlc": "Season 8: Grand Harvest"
+            },
+            "level_us_12_02": {
+                "watchpoints": {
+                    "US_12_02_WATCHPOINT_02": { "z": -150.671, "x": -311.215 },
+                    "US_12_02_WATCHPOINT_05": { "z": -390.945, "x": -793.682 },
+                    "US_12_02_WATCHPOINT_04": { "z": 361.877, "x": 188.585 },
+                    "US_12_02_WATCHPOINT_01": { "z": 187.426, "x": -576.859 },
+                    "US_12_02_WATCHPOINT_03": { "z": -227, "x": 342.844 }
+                },
+                "upgrades": {
+                    "US_12_02_UPG_01": { "z": -150.225, "x": -690.777 },
+                    "US_12_02_UPG_02": { "z": -36.461, "x": -426.476 }
+                },
+                "region": "North Carolina",
+                "location": "Reactive Zone",
+                "dlc": "Season 12: Public Energy"
+            },
+            "level_ru_04_01": {
+                "watchpoints": {
+                    "RU_04_01_WT_04": { "z": 380.895, "x": -27.493 },
+                    "RU_04_01_WT_02": { "z": 230.174, "x": 769.891 },
+                    "RU_04_01_WT_03": { "z": -192.589, "x": -529.67 },
+                    "RU_04_01_WT_01": { "z": -553.445, "x": 359.181 }
+                },
+                "upgrades": {
+                    "RU_04_01_KHAN_UPG": { "z": 833.477, "x": 705.368 }
+                },
+                "region": "Amur",
+                "location": "Urska River",
+                "dlc": "Season 4: New Frontiers"
+            },
+            "level_us_10_02": {
+                "watchpoints": {
+                    "US_10_02_WP_03": { "z": 92.34, "x": 447.052 },
+                    "US_10_02_WP_02": { "z": 852.228, "x": 527.271 },
+                    "US_10_02_WP_01": { "z": 741.159, "x": -516.666 },
+                    "US_10_02_WP_04": { "z": -8.871, "x": 18.471 },
+                    "US_10_02_WP_06": { "z": -766.297, "x": -716.593 },
+                    "US_10_02_WP_05": { "z": -543.716, "x": 853.493 },
+                    "US_10_02_WP_07": { "z": -243.351, "x": -839.794 }
+                },
+                "upgrades": {
+                    "US_10_02_UPG_01": { "z": -137.571, "x": -841.177 }
+                },
+                "region": "British Columbia",
+                "location": "North Peak National Park",
+                "dlc": "Season 10: Fix & Connect"
+            },
+            "level_us_04_02": {
+                "watchpoints": {
+                    "US_04_02_W3": { "z": -257.039, "x": -636.697 },
+                    "US_04_02_W5": { "z": 19.416, "x": -153.34 },
+                    "US_04_02_W2": { "z": -755.858, "x": -177.192 },
+                    "US_04_02_W7": { "z": 583.605, "x": 358.018 },
+                    "US_04_02_W4": { "z": -140.851, "x": 391.322 },
+                    "US_04_02_W1": { "z": 830.06, "x": -629.697 },
+                    "US_04_02_W6": { "z": -565.823, "x": 738.394 }
+                },
+                "upgrades": {
+                    "US_04_02_UPG_G": { "z": 566.423, "x": 750.743 },
+                    "US_04_02_UPG_ANK": { "z": 126.362, "x": -801.626 },
+                    "US_04_02_UPG_KOLOB": { "z": -467.979, "x": 355.187 }
+                },
+                "region": "Yukon",
+                "location": "Big Salmon Peak",
+                "dlc": "Season 2: Explore & Expand"
+            },
+            "level_ru_02_04": {
+                "watchpoints": {
+                    "WATCHPOINT_MOUNTAIN_SOUTH": { "z": -276.974, "x": -262.403 },
+                    "WATCHPOINT_MINES_NORTH": { "z": 247.359, "x": -302.748 },
+                    "WATCHPOINT_FARM_NORTH": { "z": 268.318, "x": 96.894 },
+                    "WATCHPOINT_SHORE_SOUTH": { "z": -382.246, "x": 277.067 }
+                },
+                "upgrades": {
+                    "RU_02_04_UPGRADE_01": { "z": -222.702, "x": 95.41 },
+                    "RU_02_04_UPGRADE_03": { "z": 333.839, "x": 256.7 },
+                    "RU_02_04_UPGRADE_02": { "z": -120.97, "x": 351.917 }
+                },
+                "region": "Taymyr",
+                "location": "Rift"
+            },
+            "level_ru_04_04": {
+                "watchpoints": {
+                    "RU_04_04_WTR_01": { "z": 682.09, "x": -935.89 },
+                    "RU_04_04_WTR_03": { "z": -710.421, "x": 353.827 },
+                    "RU_04_04_WTR_02": { "z": -445.893, "x": -571.102 },
+                    "RU_04_04_WTR_04": { "z": 675.562, "x": 482.351 }
+                },
+                "upgrades": {
+                    "RU_04_04_UPG_01": { "z": 538.411, "x": -688.75 },
+                    "RU_04_04_UPG_02": { "z": -393.12, "x": -812.681 }
+                },
+                "region": "Amur",
+                "location": "Chernokamensk",
+                "dlc": "Season 4: New Frontiers"
+            },
+            "level_ru_04_02": {
+                "watchpoints": {
+                    "RU_04_02_WATCHTOWER_04": { "z": -345.929, "x": 391.759 },
+                    "RU_04_02_WATCHTOWER_02": { "z": 212.769, "x": -554.66 },
+                    "RU_04_02_WATCHTOWER_05": { "z": 557.341, "x": -178.831 },
+                    "RU_04_02_WATCHTOWER_03": { "z": -521.49, "x": -397.044 },
+                    "RU_04_02_WATCHTOWER_01": { "z": 409.598, "x": 751.091 }
+                },
+                "upgrades": {
+                    "RU_04_02_UPGRADE_01": { "z": 720.574, "x": -706.914 }
+                },
+                "region": "Amur",
+                "location": "Cosmodrome",
+                "dlc": "Season 4: New Frontiers"
+            },
+            "level_us_09_01": {
+                "watchpoints": {
+                    "US_09_01_WATCHPOINT_01": { "z": -419.823, "x": -54.092 },
+                    "US_09_01_WATCHPOINT_03": { "z": 844.111, "x": -686.617 },
+                    "US_09_01_WATCHPOINT_02": { "z": -714.913, "x": -682.622 }
+                },
+                "upgrades": {
+                    "US_09_01_UPG_01": { "z": 903.107, "x": -406.285 },
+                    "US_09_01_UPG_02": { "z": -586.077, "x": -85.677 }
+                },
+                "region": "Ontario",
+                "location": "The Albany River",
+                "dlc": "Season 9: Renew & Rebuild"
+            },
+            "level_us_06_01": {
+                "watchpoints": {
+                    "US_06_01_WT_02": { "z": 865.386, "x": -228.505 },
+                    "US_06_01_WT_01": { "z": -339.001, "x": -609.787 },
+                    "US_06_01_WT_03": { "z": 290.573, "x": 499.653 },
+                    "US_06_01_WT_04": { "z": -734.124, "x": 315.449 }
+                },
+                "upgrades": {
+                    "US_06_01_UPG_01": { "z": -872.338, "x": -30.618 }
+                },
+                "region": "Maine",
+                "location": "The Lowland",
+                "dlc": "Season 6: Haul & Hustle"
+            },
+            "level_ru_05_02": {
+                "watchpoints": {
+                    "WATCHPOINT": { "z": -219.88, "x": -86.432 }
+                },
+                "upgrades": {
+                    "RU_05_02_UPGRADE_01": { "z": -71.991, "x": 406.621 }
+                },
+                "region": "Don",
+                "location": "Antonovskiy Nature Reserve",
+                "dlc": "Season 5: Build & Dispatch"
+            },
+            "level_ru_03_02": {
+                "watchpoints": {
+                    "RU_03_02_WATCHTOWER_4": { "z": -141.504, "x": 482.754 },
+                    "RU_03_02_WATCHTOWER_2": { "z": -540.273, "x": -377.886 },
+                    "RU_03_02_WATCHTOWER_1": { "z": 667.114, "x": -134.596 }
+                },
+                "upgrades": {
+                    "RU_03_02_UPG_3": { "z": -919.229, "x": 846.667 },
+                    "RU_03_02_UPG_4": { "z": -661.493, "x": 234.25 },
+                    "RU_03_02_UPG_2": { "z": 726.389, "x": -945.899 },
+                    "RU_03_02_UPG_5": { "z": 69.294, "x": -0.81 }
+                },
+                "region": "Kola Peninsula",
+                "location": "Imandra",
+                "dlc": "Season 1: Search & Recover"
+            },
+            "level_us_12_04": {
+                "watchpoints": {
+                    "US_12_04_WATCHPOINT_01": { "z": -193.193, "x": -670.365 },
+                    "US_12_04_WATCHPOINT_02": { "z": -498.256, "x": 199.126 },
+                    "US_12_04_WATCHPOINT_04": { "z": -650.811, "x": 632.73 },
+                    "US_12_04_WATCHPOINT_03": { "z": 383.616, "x": 249.592 }
+                },
+                "upgrades": {
+                    "US_12_04_UPG_01": { "z": 201.617, "x": -714.081 },
+                    "US_12_04_UPG_02": { "z": 49.446, "x": 327.027 }
+                },
+                "region": "North Carolina",
+                "location": "Oviro Hills",
+                "dlc": "Season 12: Public Energy"
+            },
+            "level_ru_02_01_crop": {
+                "watchpoints": {
+                    "WATCHPOINT_HILL_EAST": { "z": 78.263, "x": 271.845 },
+                    "WATCHPOINT_HILL_SOUTHWEST": { "z": -97.643, "x": -263.423 },
+                    "WATCHPOINT_SWAMP_EAST": { "z": -472.898, "x": -207.586 },
+                    "WATCHPOINT_CLIFFSIDE_WEST": { "z": 526.66, "x": -165.133 },
+                    "WATCHPOINT_HILL_SOUTH": { "z": -419.238, "x": 300.95 },
+                    "WATCHPOINT_CHURCH_NORTH": { "z": 495.941, "x": 178.198 }
+                },
+                "upgrades": {
+                    "RU_02_01_UPGRADE_01": { "z": 822.316, "x": 328.536 },
+                    "RU_02_01_UPGRADE_02": { "z": 52.932, "x": 25.367 },
+                    "RU_02_01_UPGRADE_07": { "z": 603.254, "x": -183.928 },
+                    "RU_02_01_UPGRADE_08": { "z": -525.442, "x": 47.387 },
+                    "RU_02_01_UPGRADE_06": { "z": -395.691, "x": -91.044 },
+                    "RU_02_01_UPGRADE_03": { "z": 947.883, "x": -131.448 },
+                    "RU_02_01_UPGRADE_04": { "z": 259.167, "x": -416.965 }
+                },
+                "region": "Taymyr",
+                "location": "Quarry"
+            },
+            "level_us_14_02": {
+                "watchpoints": {
+                    "US_14_02_WATCHPOINT_02": { "z": -224.148, "x": -89.385 },
+                    "US_14_02_WATCHPOINT_03": { "z": 83.801, "x": 552.487 },
+                    "US_14_02_WATCHPOINT_01": { "z": 436.948, "x": -338.092 }
+                },
+                "upgrades": {
+                    "US_14_02_UPG_04": { "z": -386.455, "x": 715.636 },
+                    "US_14_02_UPG_01": { "z": -301.448, "x": -741.898 },
+                    "US_14_02_UPG_03": { "z": -626.392, "x": -471.487 },
+                    "US_14_02_UPG_02": { "z": 180.962, "x": 391.586 }
+                },
+                "region": "Austria",
+                "location": "Foothills",
+                "dlc": "Season 14: Reap & Sow"
+            },
+            "level_ru_03_01": {
+                "watchpoints": {
+                    "RU_03_01_WATCHPOINT_2": { "z": -648.349, "x": -225.387 },
+                    "RU_03_01_WATCHPOINT_0": { "z": -570.23, "x": 808.628 },
+                    "RU_03_01_WATCHPOINT_1": { "z": -503.401, "x": 276.544 }
+                },
+                "upgrades": {
+                    "RU_03_01_UPGRADE_03": { "z": 228.75, "x": 430.251 },
+                    "RU_03_01_UPGRADE_01": { "z": -905.69, "x": 145.55 },
+                    "RU_03_01_UPGRADE_05": { "z": -22.512, "x": -428.689 },
+                    "RU_03_01_UPGRADE_02": { "z": -888.818, "x": -755.671 },
+                    "RU_03_01_UPGRADE_04": { "z": 640.822, "x": -307.441 }
+                },
+                "region": "Kola Peninsula",
+                "location": "Lake Kovd",
+                "dlc": "Season 1: Search & Recover"
+            },
+            "level_us_01_01": {
+                "watchpoints": {
+                    "US_01_01_W1": { "z": 178.053, "x": 297.438 },
+                    "US_01_01_W7": { "z": -187.196, "x": 397.943 },
+                    "US_01_01_W8": { "z": 675.925, "x": 451.99 },
+                    "US_01_01_W5": { "z": -811.941, "x": -321.56 },
+                    "US_01_01_W9": { "z": -580.736, "x": -809.069 },
+                    "US_01_01_W6": { "z": -841.142, "x": 294.095 },
+                    "US_01_01_W3": { "z": -210.559, "x": -474.074 },
+                    "US_01_01_W4": { "z": 418.179, "x": -581.818 }
+                },
+                "upgrades": {
+                    "US_01_01_UPGRADE_FLEESTAR_SUSP_HIGHT": { "z": 3.826, "x": -134.732 },
+                    "US_01_01_UPGRADE_G_SCOUT_OFFROAD": { "z": -165.41, "x": 173.566 },
+                    "US_01_01_UPGRADE_FLEESTAR_ALLWHEELS": { "z": -623.284, "x": 357.101 },
+                    "US_01_01_UPGRADE_SCOUT_OLD_ENGINE": { "z": 165.287, "x": -867.153 },
+                    "US_01_01_UPGRADE_CK_SUSPENSION": { "z": -205.784, "x": -799.562 },
+                    "US_01_01_UPGRADE_GMC_SUSP_HIGHT": { "z": -712.373, "x": 151.714 },
+                    "US_01_01_UPGRADE_TRUCK_OLD_ENGINE": { "z": 277.57, "x": 2.523 }
+                },
+                "region": "Michigan",
+                "location": "Black River"
+            },
+            "level_us_15_01": {
+                "watchpoints": {
+                    "US_15_01_WATCHTOWER_02": { "z": 384.327, "x": 639.751 },
+                    "US_15_01_WATCHTOWER_03": { "z": 11.988, "x": -147.305 },
+                    "US_15_01_WATCHTOWER_01": { "z": 678.548, "x": -582.939 },
+                    "US_15_01_WATCHTOWER_04": { "z": -831.306, "x": 94.61 }
+                },
+                "upgrades": {
+                    "US_15_01_UPG_02": { "z": 493.215, "x": -490.863 },
+                    "US_15_01_UPG_01": { "z": 886.37, "x": -833.616 }
+                },
+                "region": "Quebec",
+                "location": "Harbor",
+                "dlc": "Season 15: Oil & Dirt"
+            },
+            "level_us_03_01": {
+                "watchpoints": {
+                    "US_03_01_WP_02": { "z": -186.5, "x": 594.715 },
+                    "US_03_01_WP_01": { "z": -766.783, "x": -797.365 },
+                    "US_03_01_WP_03": { "z": 731.851, "x": -248.324 }
+                },
+                "upgrades": {
+                    "US_03_01_UPG_02": { "z": -255.226, "x": 912.904 },
+                    "US_03_01_UPG_04": { "z": -798.822, "x": -410.033 },
+                    "US_03_01_UPG_01": { "z": -634.838, "x": -85.113 },
+                    "US_03_01_UPG_03": { "z": 827.24, "x": 329.252 }
+                },
+                "region": "Wisconsin",
+                "location": "Black Badger Lake",
+                "dlc": "Season 3: Locate & Deliver"
+            },
+            "level_us_07_01": {
+                "watchpoints": {
+                    "US_07_01_WATCHTOWER_03": { "z": -746.308, "x": -342.813 },
+                    "US_07_01_WATCHTOWER_01": { "z": -48.825, "x": 364.622 },
+                    "US_07_01_WATCHTOWER_02": { "z": 517.795, "x": -635.379 },
+                    "US_07_01_WATCHTOWER_04": { "z": -747.485, "x": 560.2 }
+                },
+                "upgrades": {
+                    "US_07_01_UPGRADE_02": { "z": -560.343, "x": 732.547 },
+                    "US_07_01_UPGRADE_04": { "z": 439.537, "x": -729.117 },
+                    "US_07_01_UPGRADE_01": { "z": 544.872, "x": 837.035 },
+                    "US_07_01_UPGRADE_03": { "z": 147.624, "x": -880.459 }
+                },
+                "region": "Tennessee",
+                "location": "Burning Mill",
+                "dlc": "Season 7: Compete & Conquer"
+            },
+            "level_us_15_02": {
+                "watchpoints": {
+                    "US_15_02_WATCHPOINT_02": { "z": 302.48, "x": -141.584 },
+                    "US_15_02_WATCHPOINT_04": { "z": -695.635, "x": 216.763 },
+                    "US_15_02_WATCHPOINT_03": { "z": 361.441, "x": 610.185 },
+                    "US_15_02_WATCHPOINT_01": { "z": 406.56, "x": -680.755 }
+                },
+                "upgrades": {
+                    "US_15_02_UPG_02": { "z": 868.889, "x": 574.777 },
+                    "US_15_02_UPG_01": { "z": -500.988, "x": -817.478 }
+                },
+                "region": "Quebec",
+                "location": "Lake Ribiere",
+                "dlc": "Season 15: Oil & Dirt"
+            },
+            "level_us_12_01": {
+                "watchpoints": {
+                    "US_12_01_WATCHPOINT_04": { "z": 440.836, "x": 560.144 },
+                    "US_12_01_WATCHPOINT_02": { "z": -652.61, "x": -66.846 },
+                    "US_12_01_WATCHPOINT_03": { "z": 570.027, "x": -521.176 },
+                    "US_12_01_WATCHPOINT_01": { "z": -151.838, "x": -595.802 }
+                },
+                "upgrades": {
+                    "US_12_01_UPGRADE": { "z": 116.088, "x": -90.97 }
+                },
+                "region": "North Carolina",
+                "location": "Pipeline Bay",
+                "dlc": "Season 12: Public Energy"
+            },
+            "level_us_10_01": {
+                "watchpoints": {
+                    "US_10_01_WP_08": { "z": 911.637, "x": 45.681 },
+                    "US_10_01_WP_10": { "z": 702.547, "x": 940.477 },
+                    "US_10_01_WP_02": { "z": -932.109, "x": -848.166 },
+                    "US_10_01_WP_11": { "z": 403.711, "x": 162.699 },
+                    "US_10_01_WP_13": { "z": -391.647, "x": 882.968 },
+                    "US_10_01_WP_05": { "z": -70.259, "x": -848.428 },
+                    "US_10_01_WP_14": { "z": -686.287, "x": 485.024 },
+                    "US_10_01_WP_12": { "z": 87.802, "x": 536.004 },
+                    "US_10_01_WP_04": { "z": -10.748, "x": -80.303 },
+                    "US_10_01_WP_06": { "z": 422.725, "x": -476.415 },
+                    "US_10_01_WP_15": { "z": -301.004, "x": 265.131 },
+                    "US_10_01_WP_07": { "z": 743.926, "x": -692.944 },
+                    "US_10_01_WP_09": { "z": 939.489, "x": 482.089 },
+                    "US_10_01_WP_01": { "z": -905.216, "x": -125.516 },
+                    "US_10_01_WP_03": { "z": -542.09, "x": -415.352 }
+                },
+                "upgrades": {
+                    "US_10_01_UPG_01": { "z": -881.057, "x": 238.671 },
+                    "US_10_01_UPG_02": { "z": 688.492, "x": 534.122 }
+                },
+                "region": "British Columbia",
+                "location": "Duncan Bay",
+                "dlc": "Season 10: Fix & Connect"
+            },
+            "level_ru_08_01": {
+                "watchpoints": {
+                    "RU_08_01_WATCHPOINT_2": { "z": -312.436, "x": -355.598 },
+                    "RU_08_01_WATCHPOINT_4": { "z": 565.952, "x": 568.764 },
+                    "RU_08_01_WATCHPOINT_1": { "z": -334.092, "x": 585.075 },
+                    "RU_08_01_WATCHPOINT_3": { "z": 505.055, "x": -297.57 }
+                },
+                "upgrades": {
+                    "RU_08_01_UPG": { "z": -351.617, "x": 741.194 }
+                },
+                "region": "Belozersk Glades",
+                "location": "Crossroads",
+                "dlc": "Season 8: Grand Harvest"
+            },
+            "level_us_04_01": {
+                "watchpoints": {
+                    "US_04_01_WT_04": { "z": -628.635, "x": 175.641 },
+                    "US_04_01_WT_03": { "z": -372.281, "x": -712.127 },
+                    "US_04_01_WT_01": { "z": 893.623, "x": -571.422 },
+                    "US_04_01_WT_02": { "z": -146.38, "x": 554.878 }
+                },
+                "upgrades": {
+                    "US_04_01_UPG_02": { "z": 221.692, "x": -11.978 },
+                    "US_04_01_UPG_03": { "z": -826.22, "x": 168.083 },
+                    "US_04_01_UPG_01": { "z": 235.489, "x": -694.39 }
+                },
+                "region": "Yukon",
+                "location": "Flooded Foothills",
+                "dlc": "Season 2: Explore & Expand"
+            },
+            "level_ru_04_03": {
+                "watchpoints": {
+                    "WATCHPOINT_SE": { "z": -615.719, "x": 810.996 },
+                    "WATCHPOINT_W": { "z": 141.817, "x": -785.506 },
+                    "WATCHPOINT_C": { "z": 447.295, "x": -4.236 }
+                },
+                "upgrades": {
+                    "RU_04_03_UPGRADE_01": { "z": -424.688, "x": -669.7 }
+                },
+                "region": "Amur",
+                "location": "Northern Aegis Installation",
+                "dlc": "Season 4: New Frontiers"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <pre>C:\Program Files (x86)\Steam\userdata\<i>{profile}</i>\1465360\remote\CompleteSave.cfg</pre>
+    <button id="button">Open File</button>
+    <input type="file" id="file" style="display: none;" accept=".cfg">
+    <pre id="output"></pre>
+
+    <script>
+        const file = document.querySelector("#file")
+        const output = document.querySelector("#output")
+        
+        const link  = (region, location, x, z) => `http://www.maprunner.info/${region}/${location}/?lat=${z}&lng=${x}`
+        
+        const process = (data) => {
+            const upgradeState = ["red", "orange", "green"]
+            const watchpointState = ["red", "green"]
+            const info = {}
+            const list = []
+            let buffer = ""
+            Object.keys(mapData).forEach(map => {
+                const upgrades = data.CompleteSave.SslValue.upgradesGiverData[map]
+                const watchpoints = data.CompleteSave.SslValue.watchPointsData.data[map]
+
+                list.push({ name: `${mapData[map].region} - ${mapData[map].location}`, map: map })
+
+                Object.keys(mapData[map].upgrades).forEach(upgrade => {
+                    if (!info[map]) info[map] = {};
+                    if (!info[map].upgrades) info[map].upgrades = {}
+                    if (upgrades && upgrades[upgrade]) {    
+                        info[map].upgrades[upgrade] = upgrades[upgrade]
+                    } else {
+                        info[map].upgrades[upgrade] = 0
+                    }
+                })
+                Object.keys(mapData[map].watchpoints).forEach(watchpoint => {
+                    if (!info[map]) info[map] = {};
+                    if (!info[map].watchpoints) info[map].watchpoints = {}
+                    if (watchpoints && watchpoints[watchpoint]) {    
+                        info[map].watchpoints[watchpoint] = watchpoints[watchpoint] ? 1 : 0
+                    } else {
+                        info[map].watchpoints[watchpoint] = 0
+                    }
+                })
+            })
+
+            list.sort((a,b)=>{a=a.name.toLowerCase(); b=b.name.toLowerCase(); return a===b ? 0 : a > b ? 1 : -1 })
+            
+            list.forEach(item => {
+                buffer += `<b>${item.name}</b>\n`
+                buffer += ` > upgrades\n`
+                const region = mapData[item.map].region.toLowerCase().replace(' ', '-')
+                const location = mapData[item.map].location.toLowerCase().replace(' ', '-')
+                for (const [upgrade, state] of Object.entries(info[item.map].upgrades)) {
+                    buffer += ` - <a style="text-decoration: none; color: ${upgradeState[state]};" href="${link(region, location, mapData[item.map].upgrades[upgrade].x,mapData[item.map].upgrades[upgrade].z)}" target="_blank">${upgrade}</a>\n`
+                }
+                buffer += ` > watchpoints\n`
+                for (const [watchpoint, state] of Object.entries(info[item.map].watchpoints)) {
+                    buffer += ` - <a style="text-decoration: none; color: ${watchpointState[state]};" href="${link(region, location, mapData[item.map].watchpoints[watchpoint].x,mapData[item.map].watchpoints[watchpoint].z)}" target="_blank">${watchpoint}</a>\n`
+                }
+            })
+
+            output.innerHTML = buffer
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            document.querySelector("#button").addEventListener("click", () => file.click())
+
+            file.addEventListener("change", event => {
+                const selection = event.target.files[0]
+
+                if (!selection) return
+
+                const reader = new FileReader()
+
+                reader.addEventListener("load", event => {
+                    const json = JSON.parse(event.target.result.trim().replace(/\u0000+$/, ''))
+                    process(json)
+                })
+
+                reader.readAsText(selection)
+            })
+        })
+    </script>
+
+</body>
+
+</html>
